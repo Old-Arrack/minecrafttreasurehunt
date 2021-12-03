@@ -1,0 +1,33 @@
+{% include "header.html" %}
+
+<body id="Register">
+    <div class="login-form">
+
+
+        <h2 class="login-h2">Sign In</h2>
+
+        <img class="login-img" src="https://wallpapercave.com/wp/7OEb9e2.jpg"><br>
+
+        <form method="POST" action="{{ url_for('login') }}">
+            {{ form.csrf_token }}
+
+            {% with messages = get_flashed_messages() %}
+                {% for message in messages %}
+                    <p class="flashes">{{ message }}</p>
+                {% endfor %}
+            {% endwith %}
+
+            <i class="fas fa-envelope icon"></i>
+            <input name="email" class="login-input" placeholder="Email" type="text" autofocus required>
+
+            <div style="position: relative;">
+                <i class="fas fa-lock icon"></i>
+                <input name="pass" id="Pass" class="login-input" placeholder="Password" type="password" required>
+                <i id="Eye-icon" class="fas fa-eye-slash login-eye" onclick="show()"></i>
+            </div>
+            <button type="submit" class="btn btn-primary">Sign In</button>
+        </form>
+    </div>
+</body>
+
+{% include "footer.html" %}

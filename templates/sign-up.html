@@ -1,0 +1,44 @@
+{% include "header.html" %}
+
+<body id="Register">
+    <div class="register-box">
+        <h2>Create an account</h2>
+        <hr>
+        <img class="mc-img" src="https://play-lh.googleusercontent.com/yAtZnNL-9Eb5VYSsCaOC7KAsOVIJcY8mpKa0MoF-0HCL6b0OrFcBizURHywpuip-D6Y=w412-h220-rw" alt="minecraft image">
+
+        {% with messages = get_flashed_messages() %}
+            {% for message in messages %}
+                <p class="flashes">{{ message }}</p>
+            {% endfor %}
+        {% endwith %}
+
+        <form method="POST" action="{{ url_for('sign_up') }}">
+
+            {{ form.csrf_token }}
+
+            <div class="row">
+                <div class="col-lg-6">
+                    <input class="register-input" name="name" type="text" placeholder="Name" required>
+                </div>
+                <div class="col-lg-6">
+                    <input class="register-input" name="mc-name" type="text" placeholder="Minecraft Username" required>
+                </div>
+            </div>
+
+            <div class="row">
+                <div class="col-lg-6">
+                    <input class="register-input" name="email" type="email" placeholder="Email" required>
+                </div>
+                <div class="col-lg-6">
+                    <input class="register-input" name="contact" type="text" placeholder="Contact number" required>
+                </div>
+            </div>
+
+            <button type="submit" class="btn btn-outline-primary">Sign Up</button>
+
+        </form>
+
+    </div>
+</body>
+
+{% include "footer.html" %}
