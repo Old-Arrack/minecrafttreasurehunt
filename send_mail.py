@@ -17,14 +17,14 @@ class SendMail:
                        f"Verification Code: {self.code}"
 
     def verify(self):
-        # with smtplib.SMTP("smtp.gmail.com", 587) as connection:
-        #     connection.starttls()
-        #     connection.login(user=self.from_mail,
-        #                      password=self.password)
-        #     connection.sendmail(
-        #         from_addr=self.from_mail,
-        #         to_addrs=self.to_mail,
-        #         msg=self.message
-        #     )
+        with smtplib.SMTP("smtp.gmail.com", 587) as connection:
+            connection.starttls()
+            connection.login(user=self.from_mail,
+                             password=self.password)
+            connection.sendmail(
+                from_addr=self.from_mail,
+                to_addrs=self.to_mail,
+                msg=self.message
+            )
 
         return self.code

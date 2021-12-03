@@ -88,23 +88,11 @@ def flush_values():
     name, mc_name, email, contact = "", "", "", ""
 
 
-def is_code_expired(function):
-    def wrapper(*args, **kwargs):
-        if email and code:
-            function(*args, **kwargs)
-        else:
-            flash("Verification code has been expired. Try Signing up.")
-            return redirect(url_for("sign_up"))
-    return wrapper
-
-
 @app.route("/Verify", methods=["GET", "POST"])
-@is_code_expired
 def verify():
 
     if request.method == "POST":
         global attempts
-
         user_code = int("".join([request.form[f"{num}"] for num in range(6)]))
         if not user_code == int(code):
             attempts += 1
@@ -114,7 +102,7 @@ def verify():
             elif attempts >= 6:
 
                 flush_values()
-                flash("Verification Code Expired or your account already is set up.")
+                flash("Verification Code Expired. Try signing up again.")
                 return redirect(url_for("sign_up"))
             elif attempts == 1:
                 flash("Invalid verification code")
@@ -131,9 +119,14 @@ def verify():
 
             flush_values()
 
+            flash("Account created")
             return redirect(url_for("home"))
 
-    return render_template("verification.html", email=email, form=FlaskForm())
+    if email and code:
+        return render_template("verification.html", email=email, form=FlaskForm())
+    else:
+        flash("Your verification code has been expired or your account is already set up.")
+        return redirect(url_for("sign_up"))
 
 
 @app.route("/login/members", methods=["GET", "POST"])
@@ -189,6 +182,13 @@ def create_admin():
     db.session.commit()
 
     return "Admin created successfully..."
+
+
+@app.route("/log-out")
+@login_required
+def log_out():
+    logout_user()
+    return redirect(url_for("home"))
 
 
 if __name__ == "__main__":
