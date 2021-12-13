@@ -65,3 +65,19 @@ function show(){
         document.getElementById("Pass").type = "password";
     }
 }
+
+function delete_account() {
+    var btn = document.getElementById("DeleteBtn");
+    var error = document.getElementById("Error");
+
+    var confirm = prompt(`Type '${btn.value}' to confirm.`);
+
+    if (confirm) {
+        if (confirm === btn.value) {
+            btn.click();
+        }
+        else {
+            error.style.display = "block";
+        }
+    }
+}

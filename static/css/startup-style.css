@@ -11462,3 +11462,56 @@ input {
 .login-eye:hover {
     cursor: pointer;
 }
+
+/* Settings */
+#Settings {
+    padding: 2rem 2rem 2rem 2rem;
+}
+#Settings input {
+
+    border: 1px solid black;
+    border-radius: 3px;
+    width: 100%;
+    height: 3rem;
+    padding-left: 1rem;
+    margin-bottom: 2rem;
+    font-size: 1.5rem;
+}
+#Settings button {
+    width: auto;
+    float: right;
+}
+#Settings i {
+    font-size: 2rem;
+}
+
+.setting-content {
+    padding: 2rem 2rem 2rem 2rem;
+    position: relative;
+    margin-bottom: 2rem;
+}
+
+.settings-name {
+    position: absolute;
+    left: 10rem;
+    bottom: 2.5rem;
+}
+
+.email {
+    color: grey;
+}
+
+.detail-form {
+    padding-top: 1rem;
+}
+
+.btn-del {
+    position: relative;
+    top: 1rem;
+}
+
+.del-error {
+    color: red;
+    font-style: italic;
+    display: none;
+}

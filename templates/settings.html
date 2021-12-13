@@ -1,0 +1,75 @@
+{% include "header.html" %}
+
+<section id="Settings">
+    <h1>Settings</h1>
+    <div class="setting-content">
+        <img src="{{ user.email | gravatar }}">
+        <div class="settings-name">
+            <h3>{{ user.name }}</h3>
+            <p class="email">{{ user.email }}</p>
+        </div>
+    </div>
+    <hr>
+    <div class="setting-content">
+        <h3>Account Details</h3>
+        <form class="detail-form">
+            {{ form.csrf_token }}
+            <div class="row">
+                <div class="col-lg-6">
+                    <label>Name</label>
+                    <input type="text" name="name" value="{{ user.name }}" required>
+                </div>
+                <div class="col-lg-6">
+                    <label>Email</label>
+                    <input type="text" name="email" value="{{ user.email }}" required>
+                </div>
+            </div>
+            <div class="row">
+                <div class="col-lg-6">
+                    <label>Minecraft Username</label>
+                    <input type="text" name="username" value="{{ user.username }}" required>
+                </div>
+                <div class="col-lg-6">
+                    <label>Contact Number</label>
+                    <input type="text" name="contact" value="{{ user.contact }}" required>
+                </div>
+            </div>
+            <button class="btn btn-primary">Save Changes</button>
+        </form>
+    </div>
+    <hr>
+    {% if user.name == "Admin" %}
+    <div class="setting-content">
+        <h3>Security</h3>
+        <form class="detail-form">
+            <label>Current Password</label>
+            <input type="password" name="name" required>
+            <label>New Password</label>
+            <input type="password" name="name" required>
+            <label>Confirm password</label>
+            <input type="password" name="name" required>
+            <button class="btn btn-primary">Save Changes</button>
+        </form>
+    </div>
+    <hr>
+    <div class="setting-content">
+        <div class="row">
+            <p id="Error" class="del-error">Wrong username</p>
+            <div class="col-lg-6">
+
+                <h3>Delete Account</h3>
+                <p class="email">This will permanently delete {{ user.username }}'s account from the database.</p>
+            </div>
+            <div class="col-lg-6">
+                <button onclick="delete_account()" class="btn btn-danger btn-del">Delete account</button>
+            </div>
+            <form action="{{ url_for('delete', user_email=user.email) }}" method="POST">
+                    {{ form.csrf_token }}
+                    <button id="DeleteBtn" value="{{ user.username }}" style="display: none;" type="submit"></button>
+            </form>
+        </div>
+    </div>
+    {% endif %}
+</section>
+
+{% include "footer.html" %}

@@ -3,6 +3,7 @@ from werkzeug.security import generate_password_hash, check_password_hash
 from flask_login import UserMixin, login_user, LoginManager, login_required, current_user, logout_user
 from flask_sqlalchemy import SQLAlchemy
 from flask_wtf.csrf import CSRFProtect
+from flask_gravatar import Gravatar
 from flask_wtf import FlaskForm
 from send_mail import SendMail
 import os
@@ -18,6 +19,17 @@ csrf = CSRFProtect(app)
 login_manager = LoginManager()
 login_manager.init_app(app)
 
+gravatar = Gravatar(
+                    app,
+                    size=100,
+                    rating='g',
+                    default='retro',
+                    force_default=False,
+                    force_lower=False,
+                    use_ssl=False,
+                    base_url=None
+                    )
+
 code, attempts = 0, 0
 name, mc_name, email, contact = "", "", "", ""
 
@@ -25,13 +37,20 @@ name, mc_name, email, contact = "", "", "", ""
 class User(UserMixin, db.Model):
     id = db.Column(db.Integer, primary_key=True)
     name = db.Column(db.String(250), nullable=False)
-    username = db.Column(db.String(100), nullable=False)
+    username = db.Column(db.String(100), nullable=False, unique=True)
     email = db.Column(db.String(100), nullable=False, unique=True)
     contact = db.Column(db.String(100), nullable=False)
     password = db.Column(db.String(500), nullable=True)
 
 
-# db.create_all()
+class Comments(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    name = db.Column(db.String(250))
+    comment = db.Column(db.String(750), nullable=False)
+    rate = db.Column(db.Integer)
+
+
+db.create_all()
 
 
 @login_manager.user_loader
@@ -56,9 +75,13 @@ def sign_up():
 
         users = db.session.query(User).all()
         if users:
-            user_emails = [user.email for user in users]
+            user_emails = [u.email for u in users]
+            username = [u.username for u in users]
             if email in user_emails:
                 flash("This email already exists")
+                return redirect(url_for("sign_up"))
+            elif mc_name in username:
+                flash("This account already exists.")
                 return redirect(url_for("sign_up"))
 
         send_mail = SendMail(email, name)
@@ -169,9 +192,9 @@ def dashboard():
 def create_admin():
     user = User(
         name="Admin",
-        username="Admin",
-        contact="None",
-        email="admin@gmail.com",
+        username="mcth_admin",
+        contact="0123456789",
+        email="elites@gmail.com",
         password=generate_password_hash(
             password="elitesadmin123",
             salt_length=6
@@ -189,6 +212,23 @@ def create_admin():
 def log_out():
     logout_user()
     return redirect(url_for("home"))
+
+
+@app.route("/settings/<username>")
+@login_required
+def settings(username):
+    selected_user = User.query.filter_by(username=username).first()
+    return render_template("settings.html", user=selected_user, form=FlaskForm())
+
+
+@app.route("/details")
+def change_details():
+    pass
+
+
+@app.route("/delete/<user_email>", methods=["GET", "POST"])
+def delete(user_email):
+    return f"Delete {user_email} method"
 
 
 if __name__ == "__main__":
