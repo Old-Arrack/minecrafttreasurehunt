@@ -12,7 +12,18 @@
     <hr>
     <div class="setting-content">
         <h3>Account Details</h3>
-        <form class="detail-form">
+
+        {% with messages = get_flashed_messages() %}
+            {% for msg in messages %}
+                {% if "success" in msg %}
+                    <p style="color:green; display: block;" class="error">{{ msg }}</p>
+                {% else %}
+                    <p style="display: block;" class="error">{{ msg }}</p>
+                {% endif %}
+            {% endfor %}
+        {% endwith %}
+
+        <form action="{{ url_for('change_details', user_email=user.email) }}" method="POST" class="detail-form">
             {{ form.csrf_token }}
             <div class="row">
                 <div class="col-lg-6">
@@ -34,27 +45,40 @@
                     <input type="text" name="contact" value="{{ user.contact }}" required>
                 </div>
             </div>
-            <button class="btn btn-primary">Save Changes</button>
+            <button type="submit" class="btn btn-primary">Save Changes</button>
         </form>
     </div>
     <hr>
     {% if user.name == "Admin" %}
     <div class="setting-content">
         <h3>Security</h3>
-        <form class="detail-form">
+
+        {% with messages = get_flashed_messages() %}
+            {% if messages and "word" in messages[0]  %}
+                {% if "success in messages[0]" %}
+                    <p style="color: green; display: block;" class="error">{{ messages[0] }}</p>
+                {% else %}
+                    <p style="display: block;" class="error">{{ messages[0] }}</p>
+                {% endif %}
+            {% endif %}
+        {% endwith %}
+
+        <form name="password" action="{{ url_for('change_password', user_email=user.email) }}" method="POST" class="detail-form">
+            {{ form.csrf_token }}
             <label>Current Password</label>
-            <input type="password" name="name" required>
+            <input type="password" name="pass" required>
             <label>New Password</label>
-            <input type="password" name="name" required>
+            <input type="password" name="new_pass" required>
             <label>Confirm password</label>
-            <input type="password" name="name" required>
+            <input type="password" name="confirm_pass" required>
             <button class="btn btn-primary">Save Changes</button>
         </form>
     </div>
     <hr>
+    {% else %}
     <div class="setting-content">
         <div class="row">
-            <p id="Error" class="del-error">Wrong username</p>
+            <p id="Error" class="error">Wrong username</p>
             <div class="col-lg-6">
 
                 <h3>Delete Account</h3>
@@ -63,9 +87,9 @@
             <div class="col-lg-6">
                 <button onclick="delete_account()" class="btn btn-danger btn-del">Delete account</button>
             </div>
-            <form action="{{ url_for('delete', user_email=user.email) }}" method="POST">
-                    {{ form.csrf_token }}
-                    <button id="DeleteBtn" value="{{ user.username }}" style="display: none;" type="submit"></button>
+            <form name="delete" action="{{ url_for('delete', user_email=user.email) }}" method="POST">
+                {{ form.csrf_token }}
+                <button id="DeleteBtn" value="{{ user.username }}" style="display: none;" type="submit"></button>
             </form>
         </div>
     </div>

@@ -11510,7 +11510,7 @@ input {
     top: 1rem;
 }
 
-.del-error {
+.error {
     color: red;
     font-style: italic;
     display: none;

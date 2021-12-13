@@ -1,5 +1,6 @@
 from flask import Flask, render_template, request, redirect, url_for, flash, abort
 from werkzeug.security import generate_password_hash, check_password_hash
+from sqlalchemy.exc import IntegrityError
 from flask_login import UserMixin, login_user, LoginManager, login_required, current_user, logout_user
 from flask_sqlalchemy import SQLAlchemy
 from flask_wtf.csrf import CSRFProtect
@@ -20,15 +21,15 @@ login_manager = LoginManager()
 login_manager.init_app(app)
 
 gravatar = Gravatar(
-                    app,
-                    size=100,
-                    rating='g',
-                    default='retro',
-                    force_default=False,
-                    force_lower=False,
-                    use_ssl=False,
-                    base_url=None
-                    )
+    app,
+    size=100,
+    rating='g',
+    default='retro',
+    force_default=False,
+    force_lower=False,
+    use_ssl=False,
+    base_url=None
+)
 
 code, attempts = 0, 0
 name, mc_name, email, contact = "", "", "", ""
@@ -113,14 +114,13 @@ def flush_values():
 
 @app.route("/Verify", methods=["GET", "POST"])
 def verify():
-
     if request.method == "POST":
         global attempts
         user_code = int("".join([request.form[f"{num}"] for num in range(6)]))
         if not user_code == int(code):
             attempts += 1
             if attempts != 1 and attempts < 6:
-                flash(f"Invalid code. {6-attempts} more attempts remaining...")
+                flash(f"Invalid code. {6 - attempts} more attempts remaining...")
                 return redirect(url_for("verify"))
             elif attempts >= 6:
 
@@ -214,21 +214,81 @@ def log_out():
     return redirect(url_for("home"))
 
 
-@app.route("/settings/<username>")
+@app.route("/settings/<username>", methods=["GET", "POST"])
 @login_required
 def settings(username):
     selected_user = User.query.filter_by(username=username).first()
     return render_template("settings.html", user=selected_user, form=FlaskForm())
 
 
-@app.route("/details")
-def change_details():
-    pass
+@app.route("/change-details/<user_email>", methods=["POST"])
+@login_required
+def change_details(user_email):
+    if request.method == "POST":
+        user = User.query.filter_by(email=user_email).first()
+
+        all_users = db.session.query(User).all()
+        usernames = [u.username for u in all_users if u.name != user.name]
+        emails = [u.email for u in all_users if u.name != user.name]
+
+        new_username = request.form["username"]
+        new_email = request.form["email"]
+
+        if new_email in emails:
+            flash("This email already exists.")
+        elif new_username in usernames:
+            flash("This mc username already exists.")
+        else:
+            user.name = request.form["name"]
+            user.contact = request.form["contact"]
+            user.username = new_username
+            user.email = new_email
+
+            db.session.commit()
+
+        return redirect(url_for("settings", username=user.username))
 
 
-@app.route("/delete/<user_email>", methods=["GET", "POST"])
+@app.route("/delete/<user_email>", methods=["POST"])
+@login_required
 def delete(user_email):
-    return f"Delete {user_email} method"
+    if request.method == "POST":
+        user = User.query.filter_by(email=user_email).first()
+        db.session.delete(user)
+        db.session.commit()
+
+        return redirect(url_for("dashboard"))
+
+
+@app.route("/password/<user_email>", methods=["POST"])
+@login_required
+def change_password(user_email):
+    if request.method == "POST":
+        user = User.query.filter_by(email=user_email).first()
+        current_pass = request.form["pass"]
+        new_pass = request.form["new_pass"]
+        confirm_pass = request.form["confirm_pass"]
+
+        check_pass = check_password_hash(
+            password=current_pass,
+            pwhash=user.password
+        )
+        if check_pass:
+            print("Works")
+            if new_pass == confirm_pass:
+                print("Works23")
+                user.password = generate_password_hash(
+                    password=new_pass,
+                    salt_length=6
+                )
+                db.session.commit()
+                flash("Password changed successfully.")
+            else:
+                flash("Passwords doesn't match.")
+        else:
+            flash("Invalid password.")
+
+        return redirect(url_for("settings", username=user.username))
 
 
 if __name__ == "__main__":

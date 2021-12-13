@@ -117,7 +117,7 @@
                                     {% for user in users %}
                                     {% if user.name != "Admin" %}
                                         <tr>
-                                            <td><a href="">{{ user.name }}</a></td>
+                                            <td><a href="{{ url_for('settings', username=user.username) }}">{{ user.name }}</a></td>
                                             <td>{{ user.username }}</td>
                                             <td>{{ user.email }}</td>
                                             <td>{{ user.contact }}</td>
