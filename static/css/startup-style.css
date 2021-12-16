@@ -11325,6 +11325,7 @@ input {
     border-radius: 1rem;
     box-shadow: 0 3px 10px rgb(0 0 0 / 0.2);
 }
+
 .register-box h2 {
     text-align: center;
 }
@@ -11363,6 +11364,7 @@ input {
 @media (max-width: 978.4px) {
     .register-box {
         width: 90%;
+        padding: 1rem 2rem 1rem 2rem;
     }
     .description {
         margin: 0 0 3rem 0;
@@ -11409,12 +11411,21 @@ input {
 
 /* Login Form */
 .login-form {
-    width: 30%;
+    width: 500px;
     margin: 5rem auto;
     padding: 2rem 5rem 2rem 5rem;
     background-color: #fff;
     border-radius: 1rem;
     box-shadow: 0 3px 10px rgb(0 0 0 / 0.2);
+}
+@media (max-width: 578.6px) {
+    #Register {
+        padding: 0 0 0 0;
+    }
+    .login-form {
+        width: 100%;
+        padding: 1rem 1rem 1rem 1rem;
+    }
 }
 
 .login-h2 {
