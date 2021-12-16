@@ -8,7 +8,7 @@ from flask_gravatar import Gravatar
 from flask_wtf import FlaskForm
 from send_mail import SendMail
 import os
-# This is a comment
+
 app = Flask(__name__)
 
 app.config['SECRET_KEY'] = "gwrbebpomRbeok"
