@@ -1,7 +1,6 @@
 from flask import Flask, render_template, request, redirect, url_for, flash, abort
 from werkzeug.security import generate_password_hash, check_password_hash
-from sqlalchemy.exc import IntegrityError
-from flask_login import UserMixin, login_user, LoginManager, login_required, current_user, logout_user
+from flask_login import UserMixin, login_user, LoginManager, login_required, logout_user
 from flask_sqlalchemy import SQLAlchemy
 from flask_wtf.csrf import CSRFProtect
 from flask_gravatar import Gravatar
@@ -31,17 +30,23 @@ gravatar = Gravatar(
     base_url=None
 )
 
-code, attempts = 0, 0
-name, mc_name, email, contact = "", "", "", ""
-
 
 class User(UserMixin, db.Model):
     id = db.Column(db.Integer, primary_key=True)
     name = db.Column(db.String(250), nullable=False)
-    username = db.Column(db.String(100), nullable=False, unique=True)
+    username = db.Column(db.String(100), nullable=False)
     email = db.Column(db.String(100), nullable=False, unique=True)
     contact = db.Column(db.String(100), nullable=False)
     password = db.Column(db.String(500), nullable=True)
+
+
+class Account(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    name = db.Column(db.String(250), nullable=False)
+    username = db.Column(db.String(100), nullable=False)
+    email = db.Column(db.String(100), nullable=False, unique=True)
+    contact = db.Column(db.String(100), nullable=False)
+    code = db.Column(db.String(500), nullable=True)
 
 
 class Comments(db.Model):
@@ -67,89 +72,80 @@ def home():
 @app.route("/sign-up", methods=["GET", "POST"])
 def sign_up():
     if request.method == "POST":
-        global name, mc_name, email, contact, code
-
         name = request.form["name"]
         mc_name = request.form["mc-name"]
         email = request.form["email"]
         contact = request.form["contact"]
 
         users = db.session.query(User).all()
-        if users:
-            user_emails = [u.email for u in users]
-            username = [u.username for u in users]
-            if email in user_emails:
-                flash("This email already exists")
-                return redirect(url_for("sign_up"))
-            elif mc_name in username:
-                flash("This account already exists.")
-                return redirect(url_for("sign_up"))
+        duplicated = [u.email for u in users if u.email == email]
 
-        send_mail = SendMail(email, name)
-        code = send_mail.verify()
+        if not duplicated:
 
-        return redirect(url_for("verify"))
+            send_mail = SendMail(email, name)
+            new_account = Account(
+                name=name,
+                username=mc_name,
+                email=email,
+                contact=contact,
+                code=send_mail.verify()
+            )
+            db.session.add(new_account)
+            db.session.commit()
+
+            return redirect(url_for("verify", email=email))
+        else:
+            flash(f"{duplicated[0]} already exists!")
+            return redirect(url_for("sign_up"))
 
     return render_template("sign-up.html", form=FlaskForm())
 
 
-@app.route("/send-code")
-def send_code():
-    global code
+@app.route("/verify", methods=["GET", "POST"])
+def verify():
+    email = request.args.get("email")
 
-    send_mail = SendMail(email, name)
-    code = send_mail.verify()
+    if request.method == "POST":
+        code = ""
+        mail = request.form["email"]
+        for _ in range(6):
+            code += request.form[f"{_}"]
 
+        account = Account.query.filter_by(email=mail).first()
+        try:
+            if str(account.code) == code:
+                new_user = User(
+                    name=account.name,
+                    email=account.email,
+                    username=account.username,
+                    contact=account.contact
+                )
+                db.session.delete(account)
+                db.session.add(new_user)
+                db.session.commit()
+
+                flash("Account created...")
+                return redirect(url_for("home"))
+            else:
+                flash("Invalid verification code. Please try again.")
+                return redirect(url_for("verify", email=mail))
+        except AttributeError:
+            flash("Verification expired. Try signing up...")
+            return redirect(url_for("sign_up"))
+
+    return render_template("verification.html", email=email, form=FlaskForm())
+
+
+@app.route("/resend")
+def resend():
+    email = request.args.get("email")
+    account = Account.query.filter_by(email=email).first()
+
+    send_mail = SendMail(email, account.name)
+    account.code = send_mail.verify()
     db.session.commit()
 
-    return redirect(url_for("verify"))
-
-
-def flush_values():
-    global attempts, code, name, mc_name, email, contact
-
-    attempts, code = 0, 0
-    name, mc_name, email, contact = "", "", "", ""
-
-
-@app.route("/Verify", methods=["GET", "POST"])
-def verify():
-    if request.method == "POST":
-        global attempts
-        user_code = int("".join([request.form[f"{num}"] for num in range(6)]))
-        if not user_code == int(code):
-            attempts += 1
-            if attempts != 1 and attempts < 6:
-                flash(f"Invalid code. {6 - attempts} more attempts remaining...")
-                return redirect(url_for("verify"))
-            elif attempts >= 6:
-
-                flush_values()
-                flash("Verification Code Expired. Try signing up again.")
-                return redirect(url_for("sign_up"))
-            elif attempts == 1:
-                flash("Invalid verification code")
-                return redirect(url_for("verify"))
-        else:
-            user = User(
-                name=name,
-                username=mc_name,
-                email=email,
-                contact=contact
-            )
-            db.session.add(user)
-            db.session.commit()
-
-            flush_values()
-
-            flash("Account created")
-            return redirect(url_for("home"))
-
-    if email and code:
-        return render_template("verification.html", email=email, form=FlaskForm())
-    else:
-        flash("Your verification code has been expired or your account is already set up.")
-        return redirect(url_for("sign_up"))
+    return redirect(url_for("verify", email=email))
 
 
 @app.route("/login/members", methods=["GET", "POST"])
