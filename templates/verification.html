@@ -4,7 +4,7 @@
     <div class="register-box">
         <h2>Verify your account</h2>
         <hr>
-        <p class="verify-text">We sent a six-digit code to {{ email }}.</p>
+        <p class="verify-text">We sent a six-digit code to <strong>{{ email }}</strong>.</p>
         <p class="verify-text" style="margin-bottom: 2rem">Enter the code below to verify your email address.</p>
 
         {% with messages = get_flashed_messages() %}
@@ -17,6 +17,7 @@
 
             {{ form.csrf_token }}
 
+            <input name="email" style="display: none;" value="{{ email }}">
             <input maxlength="1" name="0" class="verify-input" type="text" required autofocus>
             <input maxlength="1" name="1" class="verify-input" type="text" required>
             <input maxlength="1" name="2" class="verify-input" type="text" required>
@@ -25,7 +26,7 @@
             <input maxlength="1" name="5" class="verify-input" type="text" required>
 
             <br>
-            <p class="check-spam">If you haven't received the code after a few minutes check you spam folder or <a href="{{ url_for('send_code') }}">Resend code</a></p>
+            <p class="check-spam">If you haven't received the code after a few minutes check you spam folder or <a href="{{ url_for('resend', email=email) }}">Resend code</a></p>
             <button style="margin-top: 1rem;" type="submit" class="btn btn-primary">Continue</button>
         </form>
     </div>
